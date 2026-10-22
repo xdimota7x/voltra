@@ -38,6 +38,10 @@ export const configureAndroidManifest: ConfigPlugin<ConfigureAndroidManifestProp
     if (enableNotifications) {
       ensurePermission('android.permission.POST_NOTIFICATIONS')
       ensurePermission('android.permission.POST_PROMOTED_NOTIFICATIONS')
+      // The headless event service (ADR 0014): a `shortService` foreground service, which needs no
+      // type-specific permission, and the wake lock React Native's headless start takes.
+      ensurePermission('android.permission.FOREGROUND_SERVICE')
+      ensurePermission('android.permission.WAKE_LOCK')
     }
 
     config.modResults.manifest['uses-permission'] = usesPermissions
@@ -58,6 +62,26 @@ export const configureAndroidManifest: ConfigPlugin<ConfigureAndroidManifestProp
           },
         })
         mainApplication.receiver = existingReceivers
+      }
+    }
+
+    // Starts the app's JavaScript in the background when a notification action is pressed while the
+    // app is not running (ADR 0014).
+    const headlessEventServiceName = 'voltra.events.VoltraHeadlessEventService'
+    if (enableNotifications) {
+      const existingServices = (mainApplication.service || []) as any[]
+      const hasHeadlessEventService = existingServices.some(
+        (service: any) => service.$?.['android:name'] === headlessEventServiceName
+      )
+      if (!hasHeadlessEventService) {
+        existingServices.push({
+          $: {
+            'android:name': headlessEventServiceName,
+            'android:exported': 'false',
+            'android:foregroundServiceType': 'shortService',
+          },
+        })
+        mainApplication.service = existingServices
       }
     }
 

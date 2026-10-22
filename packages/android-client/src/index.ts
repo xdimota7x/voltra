@@ -1,3 +1,5 @@
+import { registerVoltraHeadlessTask } from './events.js'
+
 export {
   AndroidDynamicColors,
   AndroidOngoingNotification,
@@ -106,8 +108,30 @@ export {
   type WidgetServerCredentials,
 } from './widgets/server-credentials.js'
 export { clearPreloadedImages, preloadImages, reloadWidgets } from './preload.js'
-export * from './events.js'
-export { VoltraView, type VoltraViewProps } from './components/VoltraView.js'
+export {
+  addVoltraListener,
+  isVoltraInteractionEvent,
+  isVoltraNotificationDismissedEvent,
+  isVoltraNotificationTappedEvent,
+  registerInteractionHandler,
+  type BasicVoltraEvent,
+  type VoltraActivityPushToStartTokenReceivedEvent,
+  type VoltraActivityState,
+  type VoltraActivityTokenReceivedEvent,
+  type VoltraActivityUpdateEvent,
+  type VoltraEventDelivery,
+  type VoltraEventMap,
+  type VoltraInteractionEvent,
+  type VoltraInteractionReply,
+  type VoltraNotificationDismissedEvent,
+  type VoltraNotificationTappedEvent,
+  type VoltraQueuedEventFields,
+} from './events.js'
+
+// The native event channel starts this task when a notification action is pressed while the app is
+// not running (ADR 0014); it has to be registered before the app's own entry point finishes.
+registerVoltraHeadlessTask()
+export { VoltraView, type VoltraViewInteractionEvent, type VoltraViewProps } from './components/VoltraView.js'
 export {
   type AndroidWidgetFamily,
   VoltraWidgetPreview,

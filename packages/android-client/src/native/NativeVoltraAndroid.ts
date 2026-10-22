@@ -145,6 +145,13 @@ type RequestPinGlanceAppWidgetOptionsSpec = Readonly<{
 
 export interface Spec extends TurboModule {
   readonly onOngoingNotificationEnded: CodegenTypes.EventEmitter<AndroidOngoingNotificationEndedEvent>
+  /**
+   * Public `addVoltraListener` events drained from the native queue (ADR 0014). Nothing is emitted
+   * for a type until `setEventListenerActive(type, true)`.
+   */
+  readonly onVoltraEvent: CodegenTypes.EventEmitter<CodegenTypes.UnsafeObject>
+  /** Turns delivery of one event type on or off; turning it on drains that type's queued events. */
+  setEventListenerActive(eventType: string, active: boolean): void
   startAndroidOngoingNotification(
     payload: string,
     options: StartAndroidOngoingNotificationOptionsSpec

@@ -1,6 +1,8 @@
 # ADR 0012: Android ongoing notification state after a dismissal
 
-Status: Accepted
+Status: Accepted. "The event is not queued" and "The event is internal" are amended by
+[ADR 0014](0014-android-event-channel.md): a dismissal is also reported as a public, queued
+`notificationDismissed` event. The internal signal described here is unchanged.
 
 Partially supersedes [ADR 0010](0010-android-ongoing-notification-field-placement.md): its last
 consequence ("a timed-out notification ... needs `stop` before it can start again") no longer

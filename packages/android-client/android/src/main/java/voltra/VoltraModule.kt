@@ -35,6 +35,8 @@ import voltra.dynamicwidget.serverupdate.DynamicWidgetServerUpdateScheduler
 import voltra.dynamicwidget.triggerDynamicWidgetConfigurationGlanceUpdate
 import voltra.dynamicwidget.triggerDynamicWidgetGlanceUpdate
 import voltra.dynamicwidget.triggerDynamicWidgetInstanceConfigurationGlanceUpdate
+import voltra.events.VoltraEventBus
+import voltra.events.VoltraEventSink
 import voltra.glance.renderers.arc.ArcBitmapCache
 import voltra.images.VoltraImageManager
 import voltra.ongoingnotification.VoltraNotificationException
@@ -176,13 +178,21 @@ class VoltraModule(
             )
         }
 
+    // Emits the public `addVoltraListener` events drained from the native queue (ADR 0014).
+    private val eventSink =
+        VoltraEventSink { queued, delivery ->
+            emitOnVoltraEvent(Arguments.makeNativeMap(queued.toJavaScriptMap(delivery)))
+        }
+
     override fun initialize() {
         super.initialize()
         reactApplicationContext.registerComponentCallbacks(configurationCallbacks)
         VoltraNotificationManager.addEndedListener(ongoingNotificationEndedListener)
+        VoltraEventBus.attach(eventSink)
     }
 
     override fun invalidate() {
+        VoltraEventBus.detach(eventSink)
         VoltraNotificationManager.removeEndedListener(ongoingNotificationEndedListener)
         try {
             reactApplicationContext.unregisterComponentCallbacks(configurationCallbacks)
@@ -276,6 +286,13 @@ class VoltraModule(
         settleAndroidOngoingNotificationCall(promise, "stopAndroidOngoingNotification") {
             notificationManager.stopOngoingNotification(notificationId).toWritableMap()
         }
+    }
+
+    override fun setEventListenerActive(
+        eventType: String,
+        active: Boolean,
+    ) {
+        VoltraEventBus.setListenerActive(reactApplicationContext, eventType, active)
     }
 
     override fun isAndroidOngoingNotificationActive(notificationId: String): Boolean =
